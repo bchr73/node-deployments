@@ -1,0 +1,14 @@
+---
+
+- debug:
+    msg: system configuration for RedHat
+
+- name: package manager update
+  shell: yum check-update
+  become: yes
+
+- name: install system level dependencies 
+  package: 
+    name: "{{ system_deps }}"
+    state: present
+  become: yes

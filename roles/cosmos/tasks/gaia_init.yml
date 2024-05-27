@@ -1,0 +1,31 @@
+---
+
+# - name: Fetch Gaia release
+#   uri:
+#     url: "https://api.github.com/repos/cosmos/gaia/releases/latest"
+#     return_content: yes
+#     body_format: json
+#   register: gaia_latest
+
+- name: git clone gaia release
+  git:
+    repo: 'https://github.com/cosmos/gaia.git'
+    dest: "{{ ansible_env.HOME }}/gaia"
+    version: "{{ gaia_release }}"
+
+- name: make install gaia
+  shell: make install
+  args:
+    chdir: "{{ ansible_env.HOME }}/gaia"
+  environment:
+    PATH: "{{ path.stdout }}:{{ gopaths.stdout }}"
+
+- name: remove existing `.gaia` directory
+  shell: "rm -rf {{ ansible_env.HOME }}/.gaia/*"
+  become: yes
+
+- name: initialize gaia
+  shell: gaiad init "{{ gaia_moniker }}" --home "{{ gaia_home_dir }}" --chain-id "{{ gaia_chain_id }}" 
+  environment:
+    PATH: "{{ path.stdout }}:{{ gopaths.stdout }}"
+

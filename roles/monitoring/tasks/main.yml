@@ -1,0 +1,13 @@
+---
+
+- name: configure prometheus 
+  import_tasks:
+    file: prometheus.yml
+
+- name: configure prometheus node exporter
+  import_tasks:
+    file: prometheus-node-exporter.yml
+
+- name: configure grafana 
+  import_tasks:
+    file: grafana.yml

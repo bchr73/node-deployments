@@ -1,0 +1,14 @@
+---
+
+- debug:
+    msg: system configuration for Debian
+
+- name: package manager update
+  shell: apt-get update
+  become: yes
+
+- name: install system level dependencies
+  package: 
+    name: "{{ system_deps }}"
+    state: present
+  become: yes

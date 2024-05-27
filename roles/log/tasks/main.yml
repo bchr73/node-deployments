@@ -1,0 +1,12 @@
+---
+
+- name: create cosmovisor log file 
+  file:
+    path: /var/log/cosmovisor.log
+    owner: "{{ ansible_user_id }}"
+    group: "{{ ansible_user_id }}"
+    mode: '0744'
+    access_time: preserve
+    modification_time: preserve
+    state: touch
+  become: yes

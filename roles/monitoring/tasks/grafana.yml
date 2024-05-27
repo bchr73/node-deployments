@@ -1,0 +1,54 @@
+---
+
+- name: download grafana
+  unarchive:
+    src: "https://dl.grafana.com/oss/release/grafana-{{ grafana_version }}.{{ grafana_dist }}-{{ grafana_arch }}.tar.gz"
+    dest: "{{ ansible_env.HOME }}"
+    remote_src: yes
+
+- name: remove existing grafana dir
+  file:
+    path: "{{ ansible_env.HOME }}/grafana"
+    state: absent
+
+- name: rename grafana dir
+  shell: "mv grafana-v{{ grafana_version }} grafana"
+  args:
+    chdir: "{{ ansible_env.HOME }}"
+
+- name: copy grafana-ds-prometheus.yml template 
+  template:
+    src: grafana-ds-prometheus.yml.j2
+    dest: "{{ ansible_env.HOME }}/grafana/conf/provisioning/datasources/prometheus.yml"
+
+- name: copy grafana-dashboards.yml template 
+  template:
+    src: grafana-dashboards.yml.j2
+    dest: "{{ ansible_env.HOME }}/grafana/conf/provisioning/dashboards/dashboards.yml"
+
+- name: copy grafana node exporter dash
+  copy:
+    src: grafana-node-exporter.json
+    dest: "{{ ansible_env.HOME }}/grafana/conf/provisioning/dashboards/node-exporter.json"
+
+- name: configure systemd service for grafana
+  template:
+    src: grafana.service.j2
+    dest: /etc/systemd/system/grafana.service
+  become: yes
+
+- name: enable grafana systemd service
+  systemd:
+    daemon_reload: true
+    state: stopped
+    enabled: true
+    name: grafana 
+  become: yes
+
+- name: start grafana systemd service
+  systemd:
+    daemon_reload: true
+    state: restarted
+    enabled: true
+    name: grafana 
+  become: yes

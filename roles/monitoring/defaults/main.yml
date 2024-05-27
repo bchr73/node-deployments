@@ -1,0 +1,46 @@
+---
+
+#########################
+##      Prometheus     ##
+#########################
+
+# prometheus version
+prometheus_version: 2.51.1
+
+# prometheus target os
+prometheus_dist: linux
+
+# prometheus target arch
+prometheus_arch: amd64
+
+# prometheus address
+prometheus_addr: '"127.0.0.1:9080"'
+
+#########################
+##    Node Exporter    ##
+#########################
+
+# node exporter version
+prometheus_nexpo_version: 1.7.0
+
+# node exporter target os
+prometheus_nexpo_dist: linux
+
+# node exporter target arch
+prometheus_nexpo_arch: amd64
+
+# node exporter address
+prometheus_nexpo_addr: '"127.0.0.1:9070"'
+
+#########################
+##      Grafana        ##
+#########################
+
+# grafana version
+grafana_version: 10.4.2
+
+# grafana target os
+grafana_dist: linux
+
+# grafana target arch
+grafana_arch: amd64

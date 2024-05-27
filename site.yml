@@ -1,0 +1,9 @@
+# site.yml
+
+# Apply common configuration to all hosts
+- hosts: all
+
+  roles:
+    - log
+    - cosmos
+    - monitoring

@@ -1,0 +1,97 @@
+---
+
+#########################
+##       System        ##
+#########################
+
+system_deps: [ make, gcc, liblz4-tool, aria2, jq ]
+
+swap_file_path: /swap.img
+swap_file_size_mb: 16000
+
+#########################
+##        Golang       ##
+#########################
+
+golang_version: 1.21.7
+golang_dist: linux
+golang_arch: amd64
+
+#########################
+##     Cosmovisor      ##
+#########################
+
+cosmovisor_release: latest
+
+#########################
+##        Gaia         ##
+#########################
+
+# gaia version
+gaia_release: v15.2.0
+
+# node monikor, defaults to hostname
+gaia_moniker: '"{{ inventory_hostname }}"'
+
+# chain id
+gaia_chain_id: cosmoshub-4
+
+# url to genesis.json file
+gaia_genesis_url: https://raw.githubusercontent.com/cosmos/mainnet/master/genesis/genesis.cosmoshub-4.json.gz
+
+# gaia home directory, bin, and data location
+gaia_home_dir: "{{ ansible_env.HOME }}/.gaia"
+
+# if present, will mount block device at ~/.gaia
+#gaia_mount: "/dev/sdb
+
+#########################
+##     Gaia Sync       ##
+#########################
+
+# sync method, available options: [state | quick]
+gaia_sync_method: state
+
+# state sync rpc servers setting from config.toml
+gaia_state_sync_rpc_servers: "https://cosmos-rpc.polkachu.com:443,https://cosmos-rpc.polkachu.com:443"
+
+# state sync trust height = (rpc latest block height) - (trust_heigh_interval) 
+gaia_state_sync_trust_height_interval: 4000 
+
+# state sync trust period
+gaia_state_sync_trust_period: '"168h0m0s"'
+
+# quick sync network, available options [pruned, default, archive]
+gaia_quick_sync_network: cosmoshub-4-pruned
+
+#########################
+##      app.toml       ##
+#########################
+
+# settings override for app.toml
+# strings must be enclosed in single and double quotes
+
+gaiad_override_app_toml:
+  - k: minimum-gas-prices 
+    v: '"0.0025uatom"'
+  - section: telemetry 
+    k: enabled
+    v: 'true'
+
+#########################
+##    config.toml      ##
+#########################
+
+# settings override for config.toml
+# strings must be enclosed in single and double quotes
+
+gaiad_override_config_toml:
+  - section: instrumentation
+    k: prometheus
+    v: 'true'
+  - section: instrumentation
+    k: prometheus_listen_addr
+    v: '"127.0.0.1:26660"'
+  - section: p2p
+    k: seeds
+    v: '"ade4d8bc8cbe014af6ebdf3cb7b1e9ad36f412c0@seeds.polkachu.com:14956"'

@@ -1,0 +1,45 @@
+---
+
+- name: download prometheus
+  unarchive:
+    src: "https://github.com/prometheus/prometheus/releases/download/v{{ prometheus_version }}/prometheus-{{ prometheus_version }}.{{ prometheus_dist }}-{{ prometheus_arch }}.tar.gz"
+    dest: "{{ ansible_env.HOME }}"
+    remote_src: yes
+
+- name: remove existing prometheus dir
+  file:
+    path: "{{ ansible_env.HOME }}/prometheus"
+    state: absent
+
+- name: rename prometheus dir
+  shell: "mv prometheus-{{ prometheus_version }}.{{ prometheus_dist }}-{{prometheus_arch}} prometheus"
+  args:
+    chdir: "{{ ansible_env.HOME }}"
+
+- name: copy prometheus.yml template 
+  template:
+    src: prometheus.yml.j2
+    dest: "{{ ansible_env.HOME }}/prometheus/prometheus.yml"
+  become: yes
+
+- name: configure systemd service for prometheus 
+  template:
+    src: prometheus.service.j2
+    dest: /etc/systemd/system/prometheus.service
+  become: yes
+
+- name: enable prometheus systemd service
+  systemd:
+    daemon_reload: true
+    state: stopped
+    enabled: true
+    name: prometheus 
+  become: yes
+
+- name: start prometheus systemd service
+  systemd:
+    daemon_reload: true
+    state: restarted
+    enabled: true
+    name: prometheus
+  become: yes

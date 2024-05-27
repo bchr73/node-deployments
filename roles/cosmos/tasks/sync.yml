@@ -1,0 +1,78 @@
+---
+
+- name: statesync enable 
+  community.general.ini_file:
+    path: "{{ ansible_env.HOME }}/.gaia/config/config.toml"
+    section: "statesync"
+    option: "enable"
+    value: "true"
+    state: present
+
+- name: statesync rpc servers
+  community.general.ini_file:
+    path: "{{ ansible_env.HOME }}/.gaia/config/config.toml"
+    section: "statesync"
+    option: "rpc_servers"
+    value: '"{{ gaia_state_sync_rpc_servers }}"'
+    state: present
+  when: gaia_sync_method == 'state'
+
+- name: obtain trust height
+  script:
+    get_trust_height.sh {{ gaia_state_sync_rpc_servers.split(',')[0] }} {{ gaia_state_sync_trust_height_interval }}
+  register: trust_height
+  when: gaia_sync_method == 'state'
+
+- name: statesync trust height
+  community.general.ini_file:
+    path: "{{ ansible_env.HOME }}/.gaia/config/config.toml"
+    section: "statesync"
+    option: "trust_height"
+    value: "{{ trust_height.stdout }}"
+    state: present
+
+- name: obtain trust height block hash ID
+  script:
+    get_trust_hash.sh {{ gaia_state_sync_rpc_servers.split(',')[0] }} {{ trust_height.stdout }}
+  register: trust_hash
+  when: gaia_sync_method == 'state'
+
+- name: statesync trust hash
+  community.general.ini_file:
+    path: "{{ ansible_env.HOME }}/.gaia/config/config.toml"
+    section: "statesync"
+    option: "trust_hash"
+    value: '"{{ trust_hash.stdout }}"'
+    state: present
+  when: gaia_sync_method == 'state'
+
+- name: print trust height and hash id
+  debug:
+    msg: 'Height {{trust_height.stdout }} has hash ID {{ trust_hash.stdout }}'
+  when: gaia_sync_method == 'state'
+
+- name: statesync trust period
+  community.general.ini_file:
+    path: "{{ ansible_env.HOME }}/.gaia/config/config.toml"
+    section: "statesync"
+    option: "trust_period"
+    value: "{{ gaia_state_sync_trust_period }}"
+    state: present
+  when: gaia_sync_method == 'state'
+
+- name: quicksync
+  shell: >
+    curl -L https://quicksync.io/cosmos.json
+    | jq -r '.[] |select(.file=="{{ gaia_quick_sync_network }}")|.url'
+  register: quicksync_data
+  when: gaia_sync_method == 'quick'
+
+- name: quicksync
+  shell: >
+    wget -O - {{ quicksync_data.stdout }}
+    | lz4 -d
+    | tar -xvf - 
+  args:
+    chdir: "{{ ansible_env.HOME }}/.gaia"
+  when: gaia_sync_method == 'quick'
+

@@ -1,0 +1,43 @@
+---
+
+#- name: Fetch latest supported Go version
+#  shell: cat {{ ansible_env.HOME }}/gaia/go.mod | head -n 20 | sed -ne 's/go [^0-9]*\(\([0-9]\.\)\{0,4\}[0-9][^.]\).*/\1/p'
+#  register: golang_supported
+#
+#- name: Fetch all Go versions
+#  uri:
+#    url: "https://go.dev/dl/?mode=json"
+#    return_content: yes
+#  register: golang_archives
+#
+#- name: Find matching Go version 
+#  set_fact:
+#    golang_files: "{{ golang_archives.json | selectattr('version', 'search', golang_supported.stdout) | list }}"
+#
+#- name: Find matching Go version 
+#  set_fact:
+#    golang_tar: "{{ golang_files.0.files | selectattr('os', '==', 'linux') | selectattr('arch', '==', 'amd64') }}"
+
+- name: remove pre-existing go installation
+  shell: rm -rf /usr/local/go
+  become: yes
+
+- name: untar go archive
+  unarchive:
+    src: "https://go.dev/dl/go{{ golang_version }}.{{ golang_dist }}-{{ golang_arch }}.tar.gz"
+    dest: /usr/local
+    remote_src: yes
+  become: yes
+
+- name: get $PATH
+  shell: sed -e 's/PATH=//g ; s/"//g' /etc/environment
+  register: path
+
+- name: go paths
+  shell: echo "/usr/local/go/bin:$(/usr/local/go/bin/go env GOPATH)/bin"
+  register: gopaths
+
+- name: update $PATH
+  shell: echo "PATH=\"{{ path.stdout }}:{{ gopaths.stdout }}\"" > /etc/environment
+  become: yes
+  when: 'gopaths.stdout not in path.stdout'

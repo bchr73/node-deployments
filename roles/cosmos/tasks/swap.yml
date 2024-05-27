@@ -1,0 +1,64 @@
+---
+
+- name: check if need swap 
+  set_fact:
+    need_swap: true
+  when: >
+    (ansible_memory_mb.real.total < 15999) and
+    (ansible_memory_mb.swap.total < 15999) and
+    (ansible_mounts | selectattr("mount", "==", "/") | list)[0].size_available > 31999
+
+- name: check swap file exists
+  stat:
+    path: "{{ swap_file_path }}"
+  register: swapfile 
+
+- name: swapoff if exists
+  command: swapoff {{ swap_file_path }}
+  become: yes
+  when: >
+    (need_swap | default(false)) and
+    (swapfile.stat.exists) and
+    (ansible_memory_mb.swap.total > 0)
+  register: swapoff
+
+- name: create swap file
+  command: dd if=/dev/zero of={{ swap_file_path }} bs=1024 count={{ swap_file_size_mb }}k
+  become: yes
+  when: >
+    (need_swap | default(false)) or
+    (swapoff is changed)
+  register: swap_create
+
+- name: set swap file permissions
+  become: yes
+  file:
+    path: "{{ swap_file_path }}"
+    owner: root
+    group: root
+    mode: 0600
+
+- name: make swap file
+  command: mkswap {{ swap_file_path }}
+  become: yes
+  when: swap_create is changed 
+  register: mkswap
+
+- name: write swap entry in fstab
+  mount:
+    name: none
+    src: "{{ swap_file_path }}"
+    fstype: swap
+    opts: sw
+    passno: 0
+    dump: 0
+    state: present
+  become: yes
+  when: mkswap is changed
+  register: swap_fstab
+
+- name: mount swap
+  command: swapon {{ swap_file_path }}
+  become: yes
+  when: 
+    (ansible_memory_mb.swap.total == 0) 

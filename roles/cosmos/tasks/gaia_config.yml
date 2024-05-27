@@ -1,0 +1,40 @@
+---
+
+- name: genesis file download
+  uri:
+    url: "{{ gaia_genesis_url }}" 
+    dest: "{{ ansible_env.HOME }}/genesis.json.gz"
+    return_content: yes
+
+- name: genesis file unzip 
+  command: gzip -d genesis.json.gz -f
+ 
+- name: genesis file copy
+  copy:
+    src: "{{ ansible_env.HOME }}/genesis.json"
+    dest: "{{ ansible_env.HOME }}/.gaia/config/genesis.json"
+    remote_src: yes
+
+      #- name: download seeds & peers
+      #  uri:
+      #    url: "https://dl2.quicksync.io/json/addrbook.cosmos.json" 
+      #    dest: "{{ ansible_env.HOME }}/.gaia/config/addrbook.json"
+      #    return_content: yes
+
+- name: gaiad config.toml configure
+  community.general.ini_file:
+    path: "{{ ansible_env.HOME }}/.gaia/config/config.toml"
+    section: "{{ item.section | default('') }}"
+    option: "{{ item.k }}"
+    value: "{{ item.v }}"
+    state: present
+  loop: "{{ gaiad_override_config_toml | default([]) }}"
+
+- name: gaiad app.toml configure
+  community.general.ini_file:
+    path: "{{ ansible_env.HOME }}/.gaia/config/app.toml"
+    section: "{{ item.section | default('') }}"
+    option: "{{ item.k }}"
+    value: "{{ item.v }}"
+    state: present
+  loop: "{{ gaiad_override_app_toml | default([]) }}"

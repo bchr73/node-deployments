@@ -1,0 +1,26 @@
+---
+
+- name: Format gaia mount to ext4
+  filesystem:
+    dev: "{{ gaia_mount }}"
+    fstype: ext4
+    force: true
+  become: yes
+  when: (ansible_mounts | selectattr('device', '==', gaia_mount ) | list | length == 0)
+
+- name: write mount entry in fstab
+  mount:
+    path: "{{ ansible_env.HOME }}/.gaia"
+    src: "{{ gaia_mount }}"
+    state: mounted 
+    fstype: ext4
+  become: yes
+  when: (ansible_mounts | selectattr('device', '==', gaia_mount ) | list | length == 0)
+
+- name: set mount permissions
+  file:
+    path: "{{ ansible_env.HOME }}/.gaia"
+    owner: "{{ ansible_user_id }}"
+    group: "{{ ansible_user_id }}"
+    mode: 0755
+  become: yes

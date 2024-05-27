@@ -1,0 +1,25 @@
+---
+
+- name: configure systemd service for cosmovisor
+  template:
+    src: cosmovisor.service.j2
+    dest: /etc/systemd/system/cosmovisor.service
+  become: yes
+
+- name: enable cosmovisor systemd service
+  systemd:
+    daemon_reload: true
+    state: stopped
+    enabled: true
+    name: cosmovisor
+  become: yes
+
+- name: start cosmovisor systemd service
+  systemd:
+    daemon_reload: true
+    state: restarted
+    enabled: true
+    name: cosmovisor
+  become: yes
+  environment:
+    PATH: "{{ path.stdout }}:{{ gopaths.stdout }}"

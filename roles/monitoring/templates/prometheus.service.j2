@@ -1,0 +1,14 @@
+[Unit]
+Description=Prometheus
+After=network-online.target
+
+[Service]
+User={{ ansible_user_id }}
+ExecStart={{ ansible_env.HOME }}/prometheus/prometheus \
+    --web.listen-address={{ prometheus_addr }} \
+    --config.file={{ ansible_env.HOME }}/prometheus/prometheus.yml \
+    --storage.tsdb.path={{ ansible_env.HOME }}/prometheus/data \
+    --storage.tsdb.retention.time=30d
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,13 @@
+[Unit]
+Description=Node Exporter
+After=network-online.target
+
+[Service]
+User={{ ansible_user_id }}
+ExecStart={{ ansible_env.HOME }}/prometheus-node-exporter/node_exporter \
+    --web.listen-address={{ prometheus_nexpo_addr }} \
+    --collector.systemd \
+    --collector.textfile.directory="{{ ansible_env.HOME }}/prometheus-node-exporter/textfiles"
+
+[Install]
+WantedBy=multi-user.target

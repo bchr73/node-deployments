@@ -1,0 +1,39 @@
+---
+
+- name: download prometheus node exporter
+  unarchive:
+    src: "https://github.com/prometheus/node_exporter/releases/download/v{{ prometheus_nexpo_version }}/node_exporter-{{ prometheus_nexpo_version }}.{{ prometheus_nexpo_dist }}-{{ prometheus_nexpo_arch }}.tar.gz"
+    dest: "{{ ansible_env.HOME }}"
+    remote_src: yes
+
+- name: remove existing prometheus node-exporter dir
+  file:
+    path: "{{ ansible_env.HOME }}/prometheus-node-exporter"
+    state: absent
+
+- name: rename prometheus node exporter dir
+  shell: "mv node_exporter-{{ prometheus_nexpo_version }}.{{ prometheus_nexpo_dist }}-{{prometheus_nexpo_arch}} prometheus-node-exporter"
+  args:
+    chdir: "{{ ansible_env.HOME }}"
+
+- name: configure systemd service for prometheus 
+  template:
+    src: prometheus-node-exporter.service.j2
+    dest: /etc/systemd/system/prometheus-node-exporter.service
+  become: yes
+
+- name: enable prometheus systemd service
+  systemd:
+    daemon_reload: true
+    state: stopped
+    enabled: true
+    name: prometheus-node-exporter
+  become: yes
+
+- name: start prometheus systemd service
+  systemd:
+    daemon_reload: true
+    state: restarted
+    enabled: true
+    name: prometheus-node-exporter
+  become: yes

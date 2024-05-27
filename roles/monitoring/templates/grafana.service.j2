@@ -1,0 +1,11 @@
+[Unit]
+Description=Grafana
+After=network-online.target
+
+[Service]
+User={{ ansible_user_id }}
+ExecStart={{ ansible_env.HOME }}/grafana/bin/grafana server \
+    --homepath {{ ansible_env.HOME }}/grafana 
+
+[Install]
+WantedBy=multi-user.target

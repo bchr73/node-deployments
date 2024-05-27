@@ -1,0 +1,47 @@
+---
+
+- name: configure system dependencies - Debian
+  import_tasks:
+    file: debian.yml
+  when: ansible_os_family == "Debian"
+
+- name: configure system dependencies - RHEL
+  import_tasks:
+    file: rhel.yml
+  when: ansible_os_family == "RedHat"
+
+- name: mount .gaia device if needed
+  import_tasks:
+    file: mount.yml
+  when: >
+    (gaia_mount is defined) and
+    (gaia_mount != "") and
+    (gaia_mount != None)
+
+- name: configure swap if needed
+  import_tasks:
+    file: swap.yml
+
+- name: install golang
+  import_tasks:
+    file: golang.yml
+
+- name: init gaia
+  import_tasks:
+    file: gaia_init.yml
+
+- name: config gaia
+  import_tasks:
+    file: gaia_config.yml
+
+- name: config sync
+  import_tasks:
+    file: sync.yml
+
+- name: install cosmovisor
+  import_tasks:
+    file: cosmovisor.yml
+
+- name: start cosmovisord service
+  import_tasks:
+    file: service.yml
